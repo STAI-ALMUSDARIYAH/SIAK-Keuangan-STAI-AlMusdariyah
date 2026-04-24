@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIK - STAI Al-Musdariyah Cimahi</title>
+    <link rel="icon" href="assets/logokampus.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/logokampus.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="login-container">
+        <div class="login-left">
+            <div class="login-brand">
+                <div class="s-logo-icon">
+    <img src="assets/logokampus.png" alt="Logo" class="logo-img-sm">
+</div>
+                <h1>STAI Al-Musdariyah</h1>
+                <p>Kota Cimahi, Jawa Barat</p>
+            </div>
+            <div class="login-illustration">
+                <div class="illust-circle">
+    <img src="assets/logokampus.png" alt="Logo" class="logo-img-big">
+</div>
+                <h2>Sistem Informasi Keuangan</h2>
+                <p>Kelola keuangan kampus secara transparan, akuntabel, dan terintegrasi dengan Google Sheets</p>
+            </div>
+            <div class="login-features">
+                <div class="feat"><i class="fas fa-shield-alt"></i><span>Multi-Role Access</span></div>
+                <div class="feat"><i class="fab fa-google"></i><span>Google Sheets</span></div>
+                <div class="feat"><i class="fas fa-chart-pie"></i><span>Real-time Report</span></div>
+            </div>
+        </div>
+        <div class="login-right">
+            <div class="login-form-wrap">
+                <div class="login-form-header">
+                    <h2>Selamat Datang</h2>
+                    <p>Masuk ke akun Anda untuk melanjutkan</p>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="login-field">
+                        <label><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="loginUser" placeholder="Masukkan username" required autocomplete="username">
+                    </div>
+                    <div class="login-field">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <div class="pass-wrap">
+                            <input type="password" id="loginPass" placeholder="Masukkan password" required autocomplete="current-password">
+                            <button type="button" class="pass-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="passIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="login-error" id="loginError"></div>
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <span>Masuk</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="login-demo-info">
+                    <h4><i class="fas fa-info-circle"></i> Demo Accounts</h4>
+                    <div class="demo-accounts">
+                        <div class="demo-acc" onclick="fillLogin('admin','admin123')">
+                            <i class="fas fa-user-shield"></i>
+                            <div><strong>Admin</strong><small>admin / admin123</small></div>
+                        </div>
+                        <div class="demo-acc" onclick="fillLogin('dosen1','dosen123')">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <div><strong>Dosen</strong><small>dosen1 / dosen123</small></div>
+                        </div>
+                        <div class="demo-acc" onclick="fillLogin('mhs1','mhs123')">
+                            <i class="fas fa-user-graduate"></i>
+                            <div><strong>Mahasiswa</strong><small>mhs1 / mhs123</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ LOADING OVERLAY ============ -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <p id="loaderText">Memuat data...</p>
+    </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div class="app-shell" id="appShell" style="display:none">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="s-logo">
+                <div class="login-logo-icon">
+    <img src="assets/logokampus.png" alt="Logo STAI Al-Musdariyah" class="logo-img">
+</div>
+                <div class="s-logo-text">
+                    <h2>STAI</h2>
+                    <p>Al-Musdariyah</p>
+                </div>
+            </div>
+            <button class="s-close" id="sClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="s-user">
+            <div class="s-avatar" id="sAvatar"><i class="fas fa-user"></i></div>
+            <div class="s-user-info">
+                <h4 id="sUserName">-</h4>
+                <span class="s-role-badge" id="sRoleBadge">-</span>
+            </div>
+        </div>
+        <nav class="s-nav" id="sNav">
+            <!-- Dynamic nav items -->
+        </nav>
+        <div class="s-footer">
+            <button class="s-logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i><span>Keluar</span>
+            </button>
+            <div class="s-powered">
+                <i class="fab fa-google"></i><small>Google Sheets Connected</small>
+            </div>
+        </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sOverlay"></div>
+
+    <!-- MAIN -->
+    <main class="main" id="mainArea">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="tb-left">
+                <button class="tb-menu" id="tbMenu"><i class="fas fa-bars"></i></button>
+                <div class="tb-breadcrumb">
+                    <span class="tb-app-name">SIK STAI</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span id="tbPage">Dashboard</span>
+                </div>
+            </div>
+            <div class="tb-right">
+                <div class="tb-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Cari..." id="globalSearch">
+                </div>
+                <button class="tb-icon" onclick="refreshAllData()" title="Refresh">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                </button>
+                <button class="tb-icon" id="themeBtn" title="Dark Mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <div class="tb-icon notif-wrap">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot" id="notifDot">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTAINER -->
+        <div class="page-container" id="pageContainer">
+            <!-- All pages rendered by JS -->
+        </div>
+
+        <footer class="app-footer">
+            <p>© 2024 SIK • <strong>STAI Al-Musdariyah Cimahi</strong> • Powered by <i class="fab fa-google" style="color:#4285f4"></i> Google Sheets</p>
+        </footer>
+    </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal-dialog" id="modalDialog">
+        <div class="modal-hd">
+            <h3 id="modalTitle">Modal</h3>
+            <button class="modal-cls" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-bd" id="modalBody"></div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastBox"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
