@@ -112,4 +112,176 @@ return all.map(tx=>{const i=tx._t==='in';return`<tr><td>${fDate(tx.Tanggal)}</td
 
 // === PEMASUKAN ===
 function rInc(){const pg=document.getElementById('p-pemasukan');
-pg.innerHTML=`<div class="pb"><div><h2><i class="fas fa-arrow-circle-down"></i> Pemasukan</h2><p>TA ${TA} | 
+pg.innerHTML=`<div class="pb"><div><h2><i class="fas fa-arrow-circle-down"></i> Pemasukan</h2><p>TA ${TA} | <em>SPP otomatis masuk saat pembayaran</em></p></div><button class="btn btn-p" onclick="openForm('income')"><i class="fas fa-plus"></i> Tambah Manual</button></div>
+<div class="cd"><div class="cd-hd"><h3>Data Pemasukan</h3><span class="cnt-b">${S.income.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jumlah</th><th>Sumber</th><th>Aksi</th></tr></thead>
+<tbody>${S.income.length?S.income.map((r,i)=>{const fromSpp=r['Ref SPP']&&r['Ref SPP']!=='-'&&r['Ref SPP']!=='';
+return`<tr><td>${i+1}</td><td>${fDate(r.Tanggal)}</td><td>${trunc(r.Keterangan,35)}</td><td><span class="bg bg-b">${r.Kategori}</span></td><td style="font-weight:700;color:var(--g)">+${fRp(r.Jumlah)}</td>
+<td>${fromSpp?'<span class="bg bg-t"><i class="fas fa-sync"></i> Auto SPP</span>':'<span class="bg bg-y">Manual</span>'}</td>
+<td><div style="display:flex;gap:3px">${fromSpp?'<span style="font-size:.65rem;color:var(--tx3)">Dari SPP</span>':`<button class="btn-ic ed" onclick="openForm('income','${r.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('pemasukan','${r.ID}','deletePemasukan')"><i class="fas fa-trash"></i></button>`}</div></td></tr>`}).join(''):'<tr><td colspan="7" class="empty-s"><i class="fas fa-inbox"></i><p>Belum ada</p></td></tr>'}</tbody></table></div></div>`}
+
+// === PENGELUARAN ===
+function rExp(){document.getElementById('p-pengeluaran').innerHTML=`<div class="pb"><div><h2><i class="fas fa-arrow-circle-up"></i> Pengeluaran</h2><p>TA ${TA}</p></div><button class="btn btn-d" onclick="openForm('expense')"><i class="fas fa-plus"></i> Tambah</button></div>
+<div class="cd"><div class="cd-hd"><h3>Data Pengeluaran</h3><span class="cnt-b">${S.expense.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+<tbody>${S.expense.length?S.expense.map((r,i)=>`<tr><td>${i+1}</td><td>${fDate(r.Tanggal)}</td><td>${trunc(r.Keterangan,40)}</td><td><span class="bg bg-p">${r.Kategori}</span></td><td style="font-weight:700;color:var(--r)">-${fRp(r.Jumlah)}</td>
+<td><div style="display:flex;gap:3px"><button class="btn-ic ed" onclick="openForm('expense','${r.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('pengeluaran','${r.ID}')"><i class="fas fa-trash"></i></button></div></td></tr>`).join(''):'<tr><td colspan="6" class="empty-s"><p>Belum ada</p></td></tr>'}</tbody></table></div></div>`}
+
+// === SPP (FULL SYNC) ===
+function rSPP(){const l=S.spp.filter(s=>s.Status==='Lunas').length,b=S.spp.filter(s=>s.Status==='Belum Bayar').length,c=S.spp.filter(s=>s.Status==='Cicilan').length;
+document.getElementById('p-spp').innerHTML=`<div class="pb"><div><h2><i class="fas fa-graduation-cap"></i> Pembayaran SPP</h2><p>Rp 2.500.000/sem | TA ${TA} | <em>Auto sync ke pemasukan & mahasiswa</em></p></div><button class="btn btn-s" onclick="openForm('spp')"><i class="fas fa-plus"></i> Input Pembayaran</button></div>
+<div class="spp-g"><div class="spp-c lunas"><i class="fas fa-check-circle"></i><div><small>Lunas</small><h3>${l}</h3></div></div><div class="spp-c belum"><i class="fas fa-times-circle"></i><div><small>Belum</small><h3>${b}</h3></div></div><div class="spp-c cicil"><i class="fas fa-pause-circle"></i><div><small>Cicilan</small><h3>${c}</h3></div></div><div class="spp-c total"><i class="fas fa-users"></i><div><small>Total</small><h3>${S.spp.length}</h3></div></div></div>
+<div class="cd"><div class="cd-hd"><h3>Data SPP</h3><span class="cnt-b">${S.spp.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Prodi</th><th>Sem</th><th>Jumlah</th><th>Status</th><th>Tgl Bayar</th><th>Aksi</th></tr></thead>
+<tbody>${S.spp.length?S.spp.map((r,i)=>`<tr><td>${i+1}</td><td><strong>${r.NIM}</strong></td><td>${r.Nama}</td><td>${trunc(r.Prodi,18)}</td><td>${r.Semester}</td><td style="font-weight:700">${fRp(r.Jumlah)}</td>
+<td><span class="bg ${r.Status==='Lunas'?'bg-g':r.Status==='Cicilan'?'bg-y':'bg-r'}">${r.Status}</span></td><td>${fDate(r['Tgl Bayar'])}</td>
+<td><div style="display:flex;gap:3px"><button class="btn-ic ed" onclick="openForm('spp','${r.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('spp','${r.ID}','deleteSPP')"><i class="fas fa-trash"></i></button></div></td></tr>`).join(''):'<tr><td colspan="9" class="empty-s"><p>Belum ada</p></td></tr>'}</tbody></table></div></div>`}
+
+// === DOSEN ===
+function rDosen(){document.getElementById('p-dosen').innerHTML=`<div class="pb"><div><h2><i class="fas fa-chalkboard-teacher"></i> Dosen</h2><p>PAI:${S.dosen.filter(d=>d.Prodi==='PAI').length} HES:${S.dosen.filter(d=>d.Prodi==='HES').length} | Auto sync akun</p></div><button class="btn btn-p" onclick="openForm('dosen')"><i class="fas fa-plus"></i> Tambah</button></div>
+<div class="cd"><div class="cd-hd"><h3>Data Dosen</h3><span class="cnt-b">${S.dosen.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>NIDN</th><th>Nama</th><th>Prodi</th><th>Jabatan</th><th>Gaji</th><th>Penelitian</th><th>PkM</th><th>Aksi</th></tr></thead>
+<tbody>${S.dosen.length?S.dosen.map((r,i)=>`<tr><td>${i+1}</td><td>${r.NIDN}</td><td><strong>${r.Nama}</strong></td><td><span class="bg ${r.Prodi==='PAI'?'bg-b':'bg-t'}">${r.Prodi}</span></td><td>${r.Jabatan}</td><td style="font-weight:600">${fRp(r.Gaji)}</td><td>${fRp(r.Penelitian)}</td><td>${fRp(r.PkM)}</td>
+<td><div style="display:flex;gap:3px"><button class="btn-ic ed" onclick="openForm('dosen','${r.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('dosen','${r.ID}','deleteDosen')"><i class="fas fa-trash"></i></button></div></td></tr>`).join(''):'<tr><td colspan="9" class="empty-s"><p>Belum ada</p></td></tr>'}</tbody></table></div></div>`}
+
+// === MAHASISWA ===
+function rMhs(){const s=S.summary?.mahasiswaStats||{},pa=s.perAngkatan||[];
+document.getElementById('p-mhs').innerHTML=`<div class="pb"><div><h2><i class="fas fa-users"></i> Mahasiswa</h2><p>Total:${s.total||0} | Lunas:${s.lunas||0} Cicilan:${s.cicilan||0} Belum:${s.belum||0} | Auto sync akun+SPP</p></div><button class="btn btn-p" onclick="openForm('mahasiswa')"><i class="fas fa-plus"></i> Tambah</button></div>
+<div class="stats"><div class="st"><div class="st-ic blue"><i class="fas fa-book-quran"></i></div><div class="st-d"><small>S1 PAI</small><h3>${s.pai||0}</h3></div></div><div class="st"><div class="st-ic teal"><i class="fas fa-scale-balanced"></i></div><div class="st-d"><small>S1 HES</small><h3>${s.hes||0}</h3></div></div></div>
+<div class="cd"><div class="cd-hd"><h3>Per Angkatan</h3></div><div class="tw"><table class="t"><thead><tr><th>Angkatan</th><th>PAI</th><th>HES</th><th>Total</th></tr></thead><tbody>${pa.map(a=>`<tr><td><strong>${a.angkatan}</strong></td><td>${a.pai}</td><td>${a.hes}</td><td><strong>${a.pai+a.hes}</strong></td></tr>`).join('')}</tbody></table></div></div>
+<div class="cd"><div class="cd-hd"><h3>Daftar Mahasiswa</h3><span class="cnt-b">${S.mahasiswa.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Prodi</th><th>Angk</th><th>Sem</th><th>Status SPP</th><th>Bayar</th><th>Sisa</th><th>Login</th><th>Aksi</th></tr></thead>
+<tbody>${S.mahasiswa.length?S.mahasiswa.slice(0,100).map((r,i)=>{const bc=r['Status SPP']==='Lunas'?'bg-g':r['Status SPP']==='Cicilan'?'bg-y':'bg-r';
+return`<tr><td>${i+1}</td><td><strong>${r.NIM}</strong></td><td>${r.Nama}</td><td>${trunc(r.Prodi,15)}</td><td>${r.Angkatan}</td><td>${r.Semester}</td>
+<td><span class="bg ${bc}">${r['Status SPP']}</span></td><td style="color:var(--g);font-weight:600">${fRp(r['Total Bayar'])}</td><td style="color:var(--r)">${fRp(r['Sisa Tagihan'])}</td>
+<td><span class="bg bg-b" style="font-size:.6rem">${String(r.NIM).toLowerCase()}</span></td>
+<td><div style="display:flex;gap:3px"><button class="btn-ic ed" onclick="openForm('mahasiswa','${r.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('mahasiswa','${r.ID}','deleteMahasiswa')"><i class="fas fa-trash"></i></button></div></td></tr>`}).join(''):'<tr><td colspan="11" class="empty-s"><p>Belum ada</p></td></tr>'}</tbody></table></div></div>`}
+
+// === ANGGARAN ===
+function rAng(){const cats={};S.anggaran.forEach(a=>{if(!cats[a.Kategori])cats[a.Kategori]=[];cats[a.Kategori].push(a)});let ch='';for(const[c,items]of Object.entries(cats)){const tot=items.reduce((s,i)=>s+(parseFloat(i.Nominal)||0),0);ch+=`<div class="ang"><div class="ang-hd"><h4>${c}</h4><span class="ang-tot">${fRp(tot)}</span></div><div class="ang-items">${items.map(i=>`<div class="ang-it"><span>${i.Item||i.SubKategori}</span><span>${fRp(i.Nominal)}</span></div>`).join('')}</div></div>`}
+document.getElementById('p-anggaran').innerHTML=`<div class="pb"><div><h2><i class="fas fa-coins"></i> Anggaran</h2><p>TA ${TA}</p></div><div class="btn btn-o"><i class="fas fa-calculator"></i> ${fRp(S.anggaran.reduce((s,a)=>s+(parseFloat(a.Nominal)||0),0))}</div></div><div class="ang-g">${ch}</div>`}
+
+// === LAPORAN ===
+function rLap(){const s=S.summary||{};document.getElementById('p-laporan').innerHTML=`<div class="pb"><div><h2><i class="fas fa-chart-line"></i> Laporan</h2><p>TA ${TA}</p></div></div>
+<div class="rpt-g"><div class="rpt"><small><i class="fas fa-arrow-down"></i> Pemasukan</small><h2 class="txt-g">${fRp(s.totalIncome)}</h2></div><div class="rpt"><small><i class="fas fa-arrow-up"></i> Pengeluaran</small><h2 class="txt-r">${fRp(s.totalExpense)}</h2></div><div class="rpt"><small><i class="fas fa-balance-scale"></i> Saldo</small><h2 class="txt-b">${fRp(s.saldo)}</h2></div></div>
+<div class="ch"><div class="ch-hd"><h3><i class="fas fa-chart-area"></i> Tren</h3></div><div class="ch-bd" style="min-height:320px"><canvas id="cR"></canvas></div></div>`;setTimeout(()=>makeChart('report'),100)}
+
+// === REKAP ===
+function rRekap(){const ms=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+document.getElementById('p-rekap').innerHTML=`<div class="pb"><div><h2><i class="fas fa-file-invoice-dollar"></i> Rekap</h2><p>TA ${TA}</p></div></div>
+<div class="cd"><div class="tw"><table class="t"><thead><tr><th>Bulan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Saldo</th><th>Status</th></tr></thead>
+<tbody>${ms.map((m,i)=>{const md=S.monthly[i]||{income:0,expense:0};const s=md.income-md.expense;return`<tr><td><strong>${m}</strong></td><td style="color:var(--g);font-weight:600">${fRp(md.income)}</td><td style="color:var(--r);font-weight:600">${fRp(md.expense)}</td><td style="font-weight:700;color:${s>=0?'var(--g)':'var(--r)'}">${fRp(s)}</td><td><span class="bg ${s>=0?'bg-g':'bg-r'}">${s>=0?'Surplus':'Defisit'}</span></td></tr>`}).join('')}</tbody></table></div></div>`}
+
+// === USERS ===
+function rUsers(){document.getElementById('p-users').innerHTML=`<div class="pb"><div><h2><i class="fas fa-user-cog"></i> Users</h2><p>Auto-sync dari Mahasiswa & Dosen</p></div><button class="btn btn-p" onclick="openForm('user')"><i class="fas fa-plus"></i> Tambah</button></div>
+<div class="cd"><div class="cd-hd"><h3>Daftar User</h3><span class="cnt-b">${S.users.length}</span></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>Username</th><th>Nama</th><th>Role</th><th>NIM/NIDN</th><th>Status</th><th>Aksi</th></tr></thead>
+<tbody>${S.users.map((u,i)=>`<tr><td>${i+1}</td><td><strong>${u.Username}</strong></td><td>${u.Nama}</td><td><span class="bg ${u.Role==='admin'?'bg-r':u.Role==='dosen'?'bg-b':'bg-g'}">${u.Role}</span></td><td>${u['NIM/NIDN']||'-'}</td><td><span class="bg ${u.Status==='Aktif'?'bg-g':'bg-r'}">${u.Status}</span></td>
+<td><div style="display:flex;gap:3px"><button class="btn-ic ed" onclick="openForm('user','${u.ID}')"><i class="fas fa-edit"></i></button><button class="btn-ic dl" onclick="delRec('users','${u.ID}','deleteUser')"><i class="fas fa-trash"></i></button></div></td></tr>`).join('')}</tbody></table></div></div>`}
+
+// === PROFILES ===
+function rProfDsn(){const dp=S.dosenProfile||{};document.getElementById('p-profil-dsn').innerHTML=`<div class="prof"><div class="prof-ban"><div class="prof-av"><i class="fas fa-chalkboard-teacher"></i></div><div class="prof-nm"><h2>${dp.Nama||S.user.nama}</h2><p>${dp.Jabatan||'-'} — ${dp.Prodi||'-'} | TA ${TA}</p></div></div><div class="prof-det"><div class="prof-it"><label>NIDN</label><span>${dp.NIDN||'-'}</span></div><div class="prof-it"><label>Prodi</label><span>${dp.Prodi||'-'}</span></div><div class="prof-it"><label>Jabatan</label><span>${dp.Jabatan||'-'}</span></div><div class="prof-it"><label>Gaji</label><span style="color:var(--g);font-weight:700">${fRp(dp.Gaji)}</span></div><div class="prof-it"><label>Penelitian</label><span style="color:var(--b);font-weight:700">${fRp(dp.Penelitian)}</span></div><div class="prof-it"><label>PkM</label><span style="color:var(--t);font-weight:700">${fRp(dp.PkM)}</span></div></div></div>`}
+
+function rProfMhs(){const mp=S.mhsProfile||{};document.getElementById('p-profil-mhs').innerHTML=`<div class="prof"><div class="prof-ban" style="background:linear-gradient(135deg,var(--pp),var(--b),var(--t))"><div class="prof-av"><i class="fas fa-user-graduate"></i></div><div class="prof-nm"><h2>${mp.Nama||S.user.nama}</h2><p>${mp.Prodi||'-'} | TA ${TA}</p></div></div><div class="prof-det"><div class="prof-it"><label>NIM</label><span>${mp.NIM||'-'}</span></div><div class="prof-it"><label>Prodi</label><span>${mp.Prodi||'-'}</span></div><div class="prof-it"><label>Angkatan</label><span>${mp.Angkatan||'-'}</span></div><div class="prof-it"><label>Semester</label><span>${mp.Semester||'-'}</span></div><div class="prof-it"><label>Status SPP</label><span class="bg ${mp['Status SPP']==='Lunas'?'bg-g':'bg-r'}">${mp['Status SPP']||'-'}</span></div><div class="prof-it"><label>Total Bayar</label><span style="color:var(--g);font-weight:700">${fRp(mp['Total Bayar'])}</span></div><div class="prof-it"><label>Sisa</label><span style="color:var(--r);font-weight:700">${fRp(mp['Sisa Tagihan'])}</span></div></div></div>`}
+
+function rSppSaya(){const paid=S.mhsSPP.reduce((s,r)=>s+(parseFloat(r.Jumlah)||0),0);const sisa=Math.max(0,BIAYA-paid);
+document.getElementById('p-spp-saya').innerHTML=`<div class="pb"><div><h2><i class="fas fa-receipt"></i> SPP Saya</h2><p>Rp 2.500.000/sem | TA ${TA}</p></div></div>
+<div class="stats"><div class="st"><div class="st-ic blue"><i class="fas fa-money-bill"></i></div><div class="st-d"><small>Biaya</small><h3>${fRp(BIAYA)}</h3></div></div>
+<div class="st"><div class="st-ic green"><i class="fas fa-check"></i></div><div class="st-d"><small>Dibayar</small><h3>${fRp(paid)}</h3></div></div>
+<div class="st"><div class="st-ic ${sisa>0?'red':'green'}"><i class="fas fa-${sisa>0?'exclamation':'check-double'}"></i></div><div class="st-d"><small>Sisa</small><h3>${fRp(sisa)}</h3></div></div></div>
+<div class="cd"><div class="cd-hd"><h3><i class="fas fa-history"></i> Riwayat Pembayaran</h3></div><div class="tw"><table class="t"><thead><tr><th>No</th><th>Tanggal</th><th>Semester</th><th>Jumlah</th><th>Status</th></tr></thead>
+<tbody>${S.mhsSPP.length?S.mhsSPP.map((r,i)=>`<tr><td>${i+1}</td><td>${fDate(r['Tgl Bayar'])}</td><td>Sem ${r.Semester}</td><td style="font-weight:700">${fRp(r.Jumlah)}</td><td><span class="bg ${r.Status==='Lunas'?'bg-g':r.Status==='Cicilan'?'bg-y':'bg-r'}">${r.Status}</span></td></tr>`).join(''):'<tr><td colspan="5" class="empty-s"><p>Belum ada riwayat</p></td></tr>'}</tbody></table></div></div>`}
+
+// === FORMS ===
+function openForm(type,eid){const t=document.getElementById('mTitle'),b=document.getElementById('mBody');let item=null;
+if(type==='income'){if(eid)item=S.income.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit Pemasukan':'💰 Tambah Pemasukan';b.innerHTML=txForm('income',item)}
+else if(type==='expense'){if(eid)item=S.expense.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit Pengeluaran':'💸 Tambah Pengeluaran';b.innerHTML=txForm('expense',item)}
+else if(type==='spp'){if(eid)item=S.spp.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit SPP':'🎓 Bayar SPP';b.innerHTML=sppForm(item)}
+else if(type==='dosen'){if(eid)item=S.dosen.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit Dosen':'👨‍🏫 Tambah Dosen';b.innerHTML=dsnForm(item)}
+else if(type==='mahasiswa'){if(eid)item=S.mahasiswa.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit Mahasiswa':'👨‍🎓 Tambah Mahasiswa';b.innerHTML=mhsForm(item)}
+else if(type==='user'){if(eid)item=S.users.find(r=>r.ID===eid);t.textContent=eid?'✏️ Edit User':'👤 Tambah User';b.innerHTML=usrForm(item)}
+document.getElementById('mBg').classList.add('open')}
+function closeModal(){document.getElementById('mBg').classList.remove('open')}
+document.getElementById('mBg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+function txForm(type,d){const cats=type==='income'?['SPP','Pendaftaran','Donasi','Hibah','Lainnya']:['Gaji','Operasional','Infrastruktur','ATK','Kegiatan','Lainnya'];
+return`<form onsubmit="saveTx(event,'${type}','${d?.ID||''}')"><div class="f-row"><div class="fg"><label>Tanggal</label><input type="date" class="inp" id="fD" value="${d?.Tanggal||todayISO()}" required></div><div class="fg"><label>Kategori</label><select class="inp" id="fC" required><option value="">Pilih</option>${cats.map(c=>`<option ${d?.Kategori===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
+<div class="fg"><label>Keterangan</label><input type="text" class="inp" id="fK" value="${d?.Keterangan||''}" required></div><div class="fg"><label>Jumlah (Rp)</label><input type="number" class="inp" id="fJ" value="${d?.Jumlah||''}" min="1" required></div><div class="fg"><label>Catatan</label><textarea class="inp" id="fN">${d?.Catatan||''}</textarea></div>
+<div class="m-ft"><button type="button" class="btn btn-o" onclick="closeModal()">Batal</button><button type="submit" class="btn ${type==='income'?'btn-p':'btn-d'}"><i class="fas fa-save"></i> ${d?'Update':'Simpan'}</button></div></form>`}
+
+function sppForm(d){return`<form onsubmit="saveSpp(event,'${d?.ID||''}')">
+<div style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:var(--rs);padding:.6rem .8rem;margin-bottom:.7rem;font-size:.7rem;color:var(--g)"><i class="fas fa-sync"></i> <strong>Auto-Sync:</strong> SPP → Pemasukan + Mahasiswa otomatis terupdate</div>
+<div class="fg"><label>NIM *</label><div style="display:flex;gap:4px"><input type="text" class="inp" id="fNIM" value="${d?.NIM||''}" placeholder="Ketik NIM" required style="flex:1"><button type="button" class="btn btn-o" onclick="cariMhs()"><i class="fas fa-search"></i></button></div></div>
+<div id="mhsInfo" style="background:var(--bg);border:1px solid var(--brd);border-radius:var(--rs);padding:.6rem;margin-bottom:.7rem;font-size:.72rem;display:${d?'block':'none'}">${d?'<strong>'+d.Nama+'</strong>':'Cari NIM dulu'}</div>
+<div class="f-row"><div class="fg"><label>Nama</label><input type="text" class="inp" id="fNm" value="${d?.Nama||''}" readonly></div><div class="fg"><label>Prodi</label><input type="text" class="inp" id="fPr" value="${d?.Prodi||''}" readonly></div></div>
+<div class="f-row"><div class="fg"><label>Angkatan</label><input type="text" class="inp" id="fAng" value="${d?.Angkatan||''}" readonly></div><div class="fg"><label>Semester *</label><select class="inp" id="fSem" required>${[1,2,3,4,5,6,7,8].map(s=>`<option ${parseInt(d?.Semester)===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+<div class="f-row"><div class="fg"><label>Jumlah (Rp) *</label><input type="number" class="inp" id="fJ" value="${d?.Jumlah||BIAYA}" min="1" required></div><div class="fg"><label>Status *</label><select class="inp" id="fSt" required>${['Lunas','Cicilan','Belum Bayar'].map(s=>`<option ${d?.Status===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+<div class="fg"><label>Tgl Bayar</label><input type="date" class="inp" id="fTB" value="${d?.['Tgl Bayar']||todayISO()}"></div>
+<div class="m-ft"><button type="button" class="btn btn-o" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-s"><i class="fas fa-save"></i> ${d?'Update':'Bayar & Simpan'}</button></div></form>`}
+
+function dsnForm(d){return`<form onsubmit="saveDsn(event,'${d?.ID||''}')">
+<div style="background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:var(--rs);padding:.6rem;margin-bottom:.7rem;font-size:.7rem;color:var(--b)"><i class="fas fa-sync"></i> Akun login otomatis dibuat (NIDN/nidn)</div>
+<div class="f-row"><div class="fg"><label>NIDN *</label><input type="text" class="inp" id="fNIDN" value="${d?.NIDN||''}" required></div><div class="fg"><label>Prodi *</label><select class="inp" id="fPr" required><option value="PAI" ${d?.Prodi==='PAI'?'selected':''}>PAI</option><option value="HES" ${d?.Prodi==='HES'?'selected':''}>HES</option></select></div></div>
+<div class="fg"><label>Nama *</label><input type="text" class="inp" id="fNm" value="${d?.Nama||''}" required></div><div class="fg"><label>Jabatan</label><input type="text" class="inp" id="fJb" value="${d?.Jabatan||'Dosen Tetap'}"></div>
+<div class="f-row"><div class="fg"><label>Gaji</label><input type="number" class="inp" id="fGj" value="${d?.Gaji||0}" min="0"></div><div class="fg"><label>Penelitian</label><input type="number" class="inp" id="fPn" value="${d?.Penelitian||0}" min="0"></div></div>
+<div class="fg"><label>PkM</label><input type="number" class="inp" id="fPk" value="${d?.PkM||0}" min="0"></div>
+<div class="m-ft"><button type="button" class="btn btn-o" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-p"><i class="fas fa-save"></i> ${d?'Update':'Simpan'}</button></div></form>`}
+
+function mhsForm(d){return`<form onsubmit="saveMhs(event,'${d?.ID||''}')">
+<div style="background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:var(--rs);padding:.6rem;margin-bottom:.7rem;font-size:.7rem;color:var(--b)"><i class="fas fa-sync"></i> ${d?'User otomatis terupdate':'Akun login otomatis dibuat (NIM/nim)'}</div>
+<div class="f-row"><div class="fg"><label>NIM *</label><input type="text" class="inp" id="fNIM" value="${d?.NIM||''}" required></div><div class="fg"><label>Angkatan *</label><select class="inp" id="fAng" required>${[2022,2023,2024,2025].map(y=>`<option ${parseInt(d?.Angkatan)===y?'selected':''}>${y}</option>`).join('')}</select></div></div>
+<div class="fg"><label>Nama *</label><input type="text" class="inp" id="fNm" value="${d?.Nama||''}" required></div>
+<div class="fg"><label>Prodi *</label><select class="inp" id="fPr" required><option value="">Pilih</option>${['S1 Pendidikan Agama Islam','S1 Hukum Ekonomi Syariah (Muamalah)'].map(p=>`<option ${d?.Prodi===p?'selected':''}>${p}</option>`).join('')}</select></div>
+<div class="fg"><label>Semester</label><select class="inp" id="fSem">${[1,2,3,4,5,6,7,8].map(s=>`<option ${parseInt(d?.Semester)===s?'selected':''}>${s}</option>`).join('')}</select></div>
+<div class="m-ft"><button type="button" class="btn btn-o" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-p"><i class="fas fa-save"></i> ${d?'Update':'Simpan & Buat Akun'}</button></div></form>`}
+
+function usrForm(d){return`<form onsubmit="saveUsr(event,'${d?.ID||''}')">
+<div class="f-row"><div class="fg"><label>Username *</label><input type="text" class="inp" id="fUs" value="${d?.Username||''}" required></div><div class="fg"><label>Password ${d?'(kosongkan=tetap)':' *'}</label><input type="text" class="inp" id="fPw" ${d?'':'required'}></div></div>
+<div class="fg"><label>Nama *</label><input type="text" class="inp" id="fNm" value="${d?.Nama||''}" required></div>
+<div class="f-row"><div class="fg"><label>Role</label><select class="inp" id="fRl">${['admin','dosen','mahasiswa'].map(r=>`<option ${d?.Role===r?'selected':''}>${r}</option>`).join('')}</select></div><div class="fg"><label>NIM/NIDN</label><input type="text" class="inp" id="fNN" value="${d?.['NIM/NIDN']||''}"></div></div>
+<div class="f-row"><div class="fg"><label>Prodi</label><input type="text" class="inp" id="fPr" value="${d?.Prodi||''}"></div><div class="fg"><label>Status</label><select class="inp" id="fSt"><option ${d?.Status==='Aktif'?'selected':''}>Aktif</option><option ${d?.Status==='Nonaktif'?'selected':''}>Nonaktif</option></select></div></div>
+<div class="m-ft"><button type="button" class="btn btn-o" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-p"><i class="fas fa-save"></i> ${d?'Update':'Simpan'}</button></div></form>`}
+
+// === CARI MAHASISWA (untuk SPP) ===
+async function cariMhs(){const nim=v('fNIM');if(!nim){toast('Ketik NIM','warning');return}
+try{const r=await apiGet('getMahasiswaByNIM','&nim='+encodeURIComponent(nim));
+if(r.success&&r.data){const m=r.data;document.getElementById('fNm').value=m.Nama||'';document.getElementById('fPr').value=m.Prodi||'';document.getElementById('fAng').value=m.Angkatan||'';if(m.Semester)document.getElementById('fSem').value=m.Semester;
+document.getElementById('mhsInfo').style.display='block';
+document.getElementById('mhsInfo').innerHTML=`<i class="fas fa-check-circle" style="color:var(--g)"></i> <strong>${m.Nama}</strong> — ${m.Prodi}<br>SPP: <strong>${m['Status SPP']||'-'}</strong> | Bayar: <strong>${fRp(m['Total Bayar'])}</strong> | Sisa: <strong style="color:var(--r)">${fRp(m['Sisa Tagihan'])}</strong>`;
+toast('Ditemukan!','success')}
+else{document.getElementById('mhsInfo').style.display='block';document.getElementById('mhsInfo').innerHTML='<i class="fas fa-times-circle" style="color:var(--r)"></i> NIM tidak ditemukan';toast('Tidak ditemukan','error')}}catch(e){toast('Error: '+e.message,'error')}}
+
+// === SAVE HANDLERS ===
+async function saveTx(e,type,eid){e.preventDefault();const sheet=type==='income'?'pemasukan':'pengeluaran';const data={date:v('fD'),description:v('fK'),category:v('fC'),amount:parseFloat(v('fJ')),notes:v('fN')};
+try{showLoad('Menyimpan...');if(eid)await apiWrite({action:'updateData',sheet,id:eid,data});else await apiWrite({action:'addData',sheet,data});closeModal();await loadData();goTo(type==='income'?'pemasukan':'pengeluaran');toast('Berhasil!','success')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+async function saveSpp(e,eid){e.preventDefault();const data={nim:v('fNIM'),name:v('fNm'),prodi:v('fPr'),angkatan:v('fAng'),semester:v('fSem'),amount:parseFloat(v('fJ')),status:v('fSt'),payDate:v('fTB')};
+try{showLoad('Menyimpan & sinkronisasi...');if(eid)await apiWrite({action:'updateSPP',id:eid,data});else await apiWrite({action:'addSPP',data});closeModal();await loadData();goTo('spp');toast('SPP tersimpan! Pemasukan & mahasiswa otomatis terupdate 🎉','success')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+async function saveDsn(e,eid){e.preventDefault();const data={nidn:v('fNIDN'),nama:v('fNm'),prodi:v('fPr'),jabatan:v('fJb'),gaji:parseFloat(v('fGj')),penelitian:parseFloat(v('fPn')||0),pkm:parseFloat(v('fPk')||0)};
+try{showLoad('Menyimpan...');if(eid)await apiWrite({action:'updateDosen',id:eid,data});else await apiWrite({action:'addDosen',data});closeModal();await loadData();goTo('dosen');toast('Dosen & akun berhasil!','success')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+async function saveMhs(e,eid){e.preventDefault();const data={nim:v('fNIM'),nama:v('fNm'),prodi:v('fPr'),angkatan:v('fAng'),semester:v('fSem'),status:'Aktif'};
+try{showLoad('Menyimpan...');let r;if(eid)r=await apiWrite({action:'updateMahasiswa',id:eid,data});else r=await apiWrite({action:'addMahasiswa',data});closeModal();await loadData();goTo('mhs');
+if(!eid&&r.loginInfo)toast(`Mahasiswa ditambahkan! Login: ${r.loginInfo.username}/${r.loginInfo.password}`,'success');else toast('Berhasil!','success')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+async function saveUsr(e,eid){e.preventDefault();const data={username:v('fUs'),nama:v('fNm'),role:v('fRl'),nimNidn:v('fNN'),prodi:v('fPr'),status:v('fSt')};const pw=v('fPw');if(pw)data.password=pw;if(!eid&&!pw){toast('Password wajib!','error');return}
+try{showLoad('Menyimpan...');if(eid)await apiWrite({action:'updateUser',id:eid,data});else await apiWrite({action:'addUser',data});closeModal();await loadData();goTo('users');toast('Berhasil!','success')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+async function delRec(sheet,id,action){if(!confirm('Hapus? Data terkait ikut terhapus/terupdate.'))return;
+try{showLoad('Menghapus & sinkron...');await apiWrite({action:action||'deleteData',sheet,id});await loadData();goTo(document.querySelector('.sb-lk.on')?.dataset.pg||'dashboard');toast('Dihapus & tersinkron!','warning')}catch(er){toast('Gagal: '+er.message,'error')}finally{hideLoad()}}
+
+// === CHARTS ===
+function makeChart(type){const dk=document.documentElement.getAttribute('data-theme')==='dark';const gc=dk?'rgba(255,255,255,.06)':'rgba(0,0,0,.05)';const tc=dk?'#8b949e':'#5a6a7b';const cc=dk?'#1c2333':'#fff';const ms=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+if(type==='monthly'){const ctx=document.getElementById('cM');if(!ctx)return;if(S.charts.m)S.charts.m.destroy();S.charts.m=new Chart(ctx,{type:'bar',data:{labels:ms,datasets:[{label:'Masuk',data:S.monthly.map(m=>m.income),backgroundColor:'rgba(39,174,96,.75)',borderColor:'#27ae60',borderWidth:2,borderRadius:6,borderSkipped:false},{label:'Keluar',data:S.monthly.map(m=>m.expense),backgroundColor:'rgba(231,76,60,.75)',borderColor:'#e74c3c',borderWidth:2,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fRp(c.raw)}`}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{family:'Poppins',size:10}}},y:{grid:{color:gc},ticks:{color:tc,font:{family:'Poppins',size:10},callback:v=>'Rp '+(v/1e6).toFixed(0)+'jt'}}}}})}
+else if(type==='donut'){const ctx=document.getElementById('cD');if(!ctx)return;if(S.charts.d)S.charts.d.destroy();const cats=['Gaji','Operasional','Infrastruktur','ATK','Kegiatan','SPP','Lainnya'];const cols=['#e74c3c','#3498db','#f39c12','#9b59b6','#1abc9c','#27ae60','#95a5a6'];
+// Untuk donut pemasukan by kategori
+const data=cats.map(c=>S.income.filter(e=>e.Kategori===c).reduce((s,e)=>s+(parseFloat(e.Jumlah)||0),0));
+S.charts.d=new Chart(ctx,{type:'doughnut',data:{labels:cats,datasets:[{data,backgroundColor:cols,borderWidth:3,borderColor:cc,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:10,color:tc,font:{family:'Poppins',size:9}}},tooltip:{callbacks:{label:c=>`${c.label}: ${fRp(c.raw)}`}}}}})}
+else if(type==='report'){const ctx=document.getElementById('cR');if(!ctx)return;if(S.charts.r)S.charts.r.destroy();S.charts.r=new Chart(ctx,{type:'line',data:{labels:ms,datasets:[{label:'Masuk',data:S.monthly.map(m=>m.income),borderColor:'#27ae60',backgroundColor:'rgba(39,174,96,.08)',fill:true,tension:.4,pointRadius:4,borderWidth:3},{label:'Keluar',data:S.monthly.map(m=>m.expense),borderColor:'#e74c3c',backgroundColor:'rgba(231,76,60,.08)',fill:true,tension:.4,pointRadius:4,borderWidth:3},{label:'Saldo',data:S.monthly.map(m=>m.income-m.expense),borderColor:'#3498db',fill:false,tension:.4,pointRadius:4,borderWidth:3,borderDash:[6,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,color:tc,font:{family:'Poppins',size:10}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fRp(c.raw)}`}}},scales:{x:{grid:{display:false},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'Rp '+(v/1e6).toFixed(0)+'jt'}}}}})}}
+
+// === SIDEBAR & THEME ===
+function initSidebar(){document.getElementById('tbHam').addEventListener('click',()=>{document.getElementById('sb').classList.add('open');document.getElementById('sbOv').classList.add('on')});const c=()=>{document.getElementById('sb').classList.remove('open');document.getElementById('sbOv').classList.remove('on')};document.getElementById('sbOv').addEventListener('click',c);document.getElementById('sbX').addEventListener('click',c)}
+function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('sbOv').classList.remove('on')}
+function initTheme(){const s=localStorage.getItem('stai_theme')||'light';setTh(s);document.getElementById('thBtn').addEventListener('click',()=>{setTh(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark')})}
+function setTh(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('stai_theme',t);document.getElementById('thIc').className=t==='dark'?'fas fa-sun':'fas fa-moon';setTimeout(()=>Object.keys(S.charts).forEach(k=>{try{makeChart(k==='m'?'monthly':k==='d'?'donut':'report')}catch(e){}}),100)}
+
+// === UI ===
+function showLoad(t){document.getElementById('loadText').textContent=t||'Memuat...';document.getElementById('loadOverlay').classList.add('on')}
+function hideLoad(){document.getElementById('loadOverlay').classList.remove('on')}
+function toast(msg,type='success'){const ic={success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};const b=document.getElementById('toastBox');const t=document.createElement('div');t.className=`toast ${type}`;t.innerHTML=`<i class="toast-i fas ${ic[type]||ic.info}"></i><span class="toast-m">${msg}</span>`;b.appendChild(t);setTimeout(()=>{t.style.cssText='opacity:0;transform:translateX(40px);transition:all .3s';setTimeout(()=>t.remove(),300)},4000)}
+new MutationObserver(()=>setTimeout(()=>Object.keys(S.charts).forEach(k=>{try{makeChart(k==='m'?'monthly':k==='d'?'donut':'report')}catch(e){}}),150)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
